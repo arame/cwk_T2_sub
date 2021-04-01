@@ -12,7 +12,6 @@ from q_learn import Q_learn
 class Pacman_grid:
     def __init__(self):
         self.no_cells = Hyper.N * Hyper.N
-        #self.results = np.zeros((2, int(Hyper.total_episodes / 100) + 1), dtype=np.int16)
         self.results = np.zeros((2, Hyper.total_episodes), dtype=np.int16)
         self.no_episodes = 0
         self.setup_display_dict()
@@ -82,9 +81,7 @@ class Pacman_grid:
             self.env[coord[0], coord[1]] = Constants.OBSTACLE
 
     def populate_env_with_breadcrumbs(self):
-        # selecting obstacles in random locations risks the possibility of
-        # insoluble games with a breadcrumb inaccessible surrounded by obstacles.
-        # To rectify this, obstacles are set from a list of coordinates
+        # select specific cells to locate the breadcrumbs in order to compare results
         no_breadcrumbs = 0
         for cell_id in Constants.BREADCRUMB_CELL_IDS:
             no_breadcrumbs += 1
@@ -98,8 +95,7 @@ class Pacman_grid:
         self.breadcrumb_coords_id = {v: k for k, v in self.id_breadcrumb_coords.items()} 
 
     def populate_env_with_random_breadcrumbs(self):
-        # Keep a record of the breadcrumb coordinates
-        # This can be used to calculate the index of the Q table
+        # This code provides an option of distributing the breadcrumbs randomly
         self.populate_env_with_state(Constants.BREADCRUMB, Hyper.no_breadcrumbs)
         arr_temp = np.nonzero(self.env == Constants.BREADCRUMB)
         self.id_breadcrumb_coords = {i : (arr_temp[0][i], arr_temp[1][i]) for i in range(len(arr_temp[0]))}
@@ -125,7 +121,7 @@ class Pacman_grid:
         return selected_coordinates
 
     def get_start_cell_coords(self):
-        # Start cell in the middle
+        # Start cell in the middle of the grid
         start_cell_id = int((self.no_cells - 1) / 2)     # N must be an odd number
         i, j = self.state_position_dict[start_cell_id]
         return start_cell_id, i, j
@@ -178,8 +174,6 @@ class Pacman_grid:
         self.done = False
         self.breadcrumb_cnt = 0
         self.prev_state = Constants.START
-        """ if self.no_episodes > 0 and self.no_episodes % 100 == 0:
-            self.result_index += 1 """
         self.no_episodes += 1
 
         if Hyper.is_ghost:
@@ -246,14 +240,12 @@ class Pacman_grid:
    
         if self.time_step > 1000:
             print("Too many timesteps")
-            #self.results[Constants.LOSE_CELL, self.result_index] += 1
             self.results[Constants.LOSE_CELL, episode] += 1
             self.done = True
             return self.done
 
         self.done = self.breadcrumb_cnt == Hyper.no_breadcrumbs
         if self.done:
-            #self.results[Constants.WIN_CELL, self.result_index] += 1
             self.results[Constants.WIN_CELL, episode] += 1
 
         return self.done
